@@ -1,43 +1,96 @@
 # Partition Names Project
 
-This repository packages the names-data workflow so it can be run without the
-author's Google Drive paths. The original analysis notebook is preserved at
-`notebooks/partition_names_project.ipynb`; the submission Python code is split
-at the Step 3 canonicalization checkpoint.
+This repository contains the reproducible workflow used for cleaning, processing, and analyzing the Chandigarh voter-roll names dataset.
 
-## What to submit
-
-The assignment brief asks for three deliverables:
-
-1. `outputs/final_df.csv` after running the pipeline.
-2. An answers `.docx` containing Q1-Q6 results and any assumptions.
-3. The reproducible Python code in this repository, especially
-   `scripts/steps_1_to_3.py` and `scripts/steps_4_onward.py`.
-
-The notebook is useful supporting evidence, but it should not be the only code
-artifact sent to the professor.
-
-## Repository layout
+The original analysis and experimentation notebook is available in:
 
 ```text
-data/raw/                         professor-supplied input CSV, not tracked
-data/interim/                     generated checkpoint CSV, not tracked
 notebooks/partition_names_project.ipynb
-outputs/                          generated final CSV, not tracked
-scripts/steps_1_to_3.py           raw data through canonicalization
-scripts/steps_4_onward.py         Step 4 through final dataset
-scripts/reproduce.py              compatibility wrapper
-third_party/its_all_in_the_name_light_repo/
 ```
 
-The third-party religion classifier contains the SVM script and only the model
-files used by this project: the multiclass non-concatenated model, vectorizer,
-and label mapping. The two `.sav` files are larger than GitHub's normal file
-limit and are marked for Git LFS in `.gitattributes`.
+To improve reproducibility and reduce rerun time, the workflow was later separated into modular Python scripts.
 
-## Reproduce
+---
 
-Use a fresh Python environment, then install dependencies:
+# Repository Structure
+
+```text
+data/
+├── raw/                      # Original input dataset
+├── interim/                  # Output after Step 3 canonicalization
+
+notebooks/
+└── partition_names_project.ipynb
+
+outputs/
+└── final_df.csv              # Final processed dataset
+
+scripts/
+├── steps_1_to_3.py           # Cleaning + transliteration + canonicalization
+├── steps_4_onward.py         # Religion inference + downstream analysis
+├── pipeline_support.py       # Shared helper functions
+└── reproduce.py              # Wrapper script
+
+third_party/
+└── its_all_in_the_name_light_repo/
+```
+
+---
+
+# Workflow Overview
+
+The pipeline was divided into two stages because canonicalization was the most computationally expensive part of the workflow.
+
+## Steps 1–3
+
+This stage performs:
+
+- Unicode cleaning
+- OCR artifact correction
+- Transliteration
+- Canonicalization
+
+Run:
+
+```powershell
+python scripts\steps_1_to_3.py
+```
+
+Output:
+
+```text
+data/interim/cleaned_2.csv
+```
+
+---
+
+## Steps 4 Onward
+
+This stage starts from the canonicalized interim dataset and performs:
+
+- Religion inference
+- Feature generation
+- Aggregations
+- Question outputs
+- Final dataset generation
+
+Run:
+
+```powershell
+python scripts\steps_4_onward.py --interim data\interim\cleaned_2.csv --output outputs\final_df.csv
+```
+
+Output:
+
+```text
+outputs/final_df.csv
+```
+
+---
+
+# Environment Setup
+
+Create a fresh Python environment:
 
 ```powershell
 py -3.11 -m venv .venv
@@ -45,66 +98,87 @@ py -3.11 -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-Place the assignment input file at `data/raw/chandigarh_all.csv`, then run the
-first script:
+---
 
-```powershell
-python scripts\steps_1_to_3.py
-```
+# Important Dependency Note
 
-This first script replaces the notebook's Colab paths with project-relative
-locations, runs Steps 1-3, and writes `data/interim/cleaned_2.csv`.
+The AI Bharat religion inference model was trained using an older version of scikit-learn.
 
-Step 3 canonicalization is the slowest part of the current notebook. After the
-canonicalized checkpoint exists, run the second script:
-
-```powershell
-python scripts\steps_4_onward.py --interim data\interim\cleaned_2.csv --output outputs\final_df.csv
-```
-
-This second script skips Unicode cleaning, transliteration, and
-canonicalization, then runs religion inference and the downstream
-variables/questions from Step 4 onward.
-
-When Step 4 onward is run inside Jupyter or Colab, run this setup cell first:
+Before running religion inference inside Jupyter or Google Colab, downgrade scikit-learn:
 
 ```python
-## because ai bharat trained on lower scikit learn library so we have to downgrade
-
 !pip uninstall -y scikit-learn
 !pip install scikit-learn==1.3.2
 ```
 
-The same setup note is kept at the top of `scripts/steps_4_onward.py` as
-comments because `!pip` syntax is valid in a notebook cell, not in a normal
-`.py` file.
+---
 
-Alternative input and output paths are supported:
+# Input Dataset
+
+Place the raw dataset inside:
+
+```text
+data/raw/chandigarh_all.csv
+```
+
+The raw dataset is not included in this repository because of file size constraints.
+
+---
+
+# Shared Resources
+
+## GitHub Repository
+
+https://github.com/Samnannn/data_unicoding.git
+
+---
+
+## Raw Dataset
+
+https://drive.google.com/file/d/1JPOz0cZd5xTkmzNYdPc3SRjvs7qyJcqP/view?usp=sharing
+
+---
+
+## Interim Dataset (After Canonicalization)
+
+https://drive.google.com/file/d/1akGSo8DxwaZqEH2Ko9DEieeIxk2Lpt8X/view?usp=sharing
+
+---
+
+## AI Bharat Religion Inference Model
+
+https://drive.google.com/drive/folders/1xomkvrSwGj40X94IpUaoC9-E5euBJYJf?usp=sharing
+
+---
+
+## Final Output Dataset
+
+https://drive.google.com/file/d/1-Nt5G0czeLe_f5sIILDsVRXMQPXvktRZ/view?usp=sharing
+
+---
+
+# Alternative Execution
+
+Custom input/output paths are also supported:
 
 ```powershell
 python scripts\steps_1_to_3.py --input C:\path\to\chandigarh_all.csv --interim C:\path\to\cleaned_2.csv
+
 python scripts\steps_4_onward.py --interim C:\path\to\cleaned_2.csv --output C:\path\to\final_df.csv
 ```
 
-## GitHub note
+---
 
-Do not push the raw `chandigarh_all.csv`, the large Step 3 checkpoint, or the
-generated final dataset unless the professor explicitly wants those files in a
-repository and the data-sharing rules allow it. The professor already supplied
-the source CSV, so a clean GitHub repository can hold code, notebook, model
-assets via Git LFS, and reproduction instructions while the final CSV and
-answers DOCX are emailed as requested.
+# Notes
 
-Before committing the large classifier assets to GitHub, initialize Git LFS in
-this clone:
+- Canonicalization is currently the slowest stage of the workflow.
+- The interim dataset allows downstream stages to be rerun without recomputing expensive preprocessing steps.
+- Large datasets and generated outputs are intentionally excluded from GitHub.
+- Shared helper functions are stored inside `pipeline_support.py`.
+- If there is any difficulty reproducing locally, the Google Colab notebook can also be used after adjusting file paths.
 
-```powershell
-git lfs install
-```
+---
 
-## Method warning to review
+# Google Colab Notebook
 
-The current notebook transliterates with `indic-transliteration`. The task brief
-specifically names AI4Bharat IndicXlit. Confirm with the professor whether the
-current transliteration implementation is acceptable or replace that step
-before treating the project as final.
+https://drive.google.com/file/d/1IHLmQAi038dsW0CY0H_pewcOZtIPCUCv/view?usp=sharing
