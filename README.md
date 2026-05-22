@@ -2,7 +2,7 @@
 
 This repository contains the reproducible workflow used for cleaning, processing, and analyzing the Chandigarh voter-roll names dataset.
 
-The original analysis and experimentation notebook is available in:
+The original notebook used during experimentation is available in:
 
 ```text
 notebooks/partition_names_project.ipynb
@@ -37,11 +37,83 @@ third_party/
 
 ---
 
-# Workflow Overview
+# Step-by-Step Reproduction Guide
 
-The pipeline was divided into two stages because canonicalization was the most computationally expensive part of the workflow.
+## Step 1 — Clone the Repository
 
-## Steps 1–3
+```powershell
+git clone https://github.com/Samnannn/data_unicoding.git
+cd data_unicoding
+```
+
+---
+
+## Step 2 — Create Python Environment
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+---
+
+## Step 3 — Download and Place the Raw Dataset
+
+Download the raw dataset from:
+
+```text
+https://drive.google.com/file/d/1JPOz0cZd5xTkmzNYdPc3SRjvs7qyJcqP/view?usp=sharing
+```
+
+Place the downloaded file inside:
+
+```text
+data/raw/
+```
+
+Expected structure:
+
+```text
+data/raw/chandigarh_all.csv
+```
+
+---
+
+## Step 4 — Download and Place the AI Bharat Model
+
+Download the AI Bharat religion inference model from:
+
+```text
+https://drive.google.com/drive/folders/1xomkvrSwGj40X94IpUaoC9-E5euBJYJf?usp=sharing
+```
+
+Place the extracted model files inside:
+
+```text
+third_party/its_all_in_the_name_light_repo/
+```
+
+---
+
+## Step 5 — Important Dependency Setup
+
+The AI Bharat religion inference model was trained using an older version of scikit-learn.
+
+Before running Step 4 onward inside Jupyter or Google Colab, downgrade scikit-learn:
+
+```python
+!pip uninstall -y scikit-learn
+!pip install scikit-learn==1.3.2
+```
+
+---
+
+# Running the Pipeline
+
+## Option A — Run Full Pipeline From Raw Dataset
+
+### Run Steps 1–3
 
 This stage performs:
 
@@ -56,7 +128,7 @@ Run:
 python scripts\steps_1_to_3.py
 ```
 
-Output:
+Output generated:
 
 ```text
 data/interim/cleaned_2.csv
@@ -64,14 +136,13 @@ data/interim/cleaned_2.csv
 
 ---
 
-## Steps 4 Onward
+### Run Steps 4 Onward
 
-This stage starts from the canonicalized interim dataset and performs:
+This stage performs:
 
 - Religion inference
 - Feature generation
 - Aggregations
-- Question outputs
 - Final dataset generation
 
 Run:
@@ -80,7 +151,7 @@ Run:
 python scripts\steps_4_onward.py --interim data\interim\cleaned_2.csv --output outputs\final_df.csv
 ```
 
-Output:
+Final output:
 
 ```text
 outputs/final_df.csv
@@ -88,97 +159,60 @@ outputs/final_df.csv
 
 ---
 
-# Environment Setup
+## Option B — Skip Canonicalization Using Precomputed Interim File
 
-Create a fresh Python environment:
+Canonicalization is the slowest stage of the workflow.  
+To avoid recomputing it, a pre-generated interim dataset is also shared.
 
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-```
-
----
-
-# Important Dependency Note
-
-The AI Bharat religion inference model was trained using an older version of scikit-learn.
-
-Before running religion inference inside Jupyter or Google Colab, downgrade scikit-learn:
-
-```python
-!pip uninstall -y scikit-learn
-!pip install scikit-learn==1.3.2
-```
-
----
-
-# Input Dataset
-
-Place the raw dataset inside:
+Download the interim dataset from:
 
 ```text
-data/raw/chandigarh_all.csv
+https://drive.google.com/file/d/1akGSo8DxwaZqEH2Ko9DEieeIxk2Lpt8X/view?usp=sharing
 ```
 
-The raw dataset is not included in this repository because of file size constraints.
+Place it inside:
 
----
+```text
+data/interim/
+```
 
-# Shared Resources
+Expected structure:
 
-## GitHub Repository
+```text
+data/interim/cleaned_2.csv
+```
 
-https://github.com/Samnannn/data_unicoding.git
-
----
-
-## Raw Dataset
-
-https://drive.google.com/file/d/1JPOz0cZd5xTkmzNYdPc3SRjvs7qyJcqP/view?usp=sharing
-
----
-
-## Interim Dataset (After Canonicalization)
-
-https://drive.google.com/file/d/1akGSo8DxwaZqEH2Ko9DEieeIxk2Lpt8X/view?usp=sharing
-
----
-
-## AI Bharat Religion Inference Model
-
-https://drive.google.com/drive/folders/1xomkvrSwGj40X94IpUaoC9-E5euBJYJf?usp=sharing
-
----
-
-## Final Output Dataset
-
-https://drive.google.com/file/d/1-Nt5G0czeLe_f5sIILDsVRXMQPXvktRZ/view?usp=sharing
-
----
-
-# Alternative Execution
-
-Custom input/output paths are also supported:
+Then directly run:
 
 ```powershell
-python scripts\steps_1_to_3.py --input C:\path\to\chandigarh_all.csv --interim C:\path\to\cleaned_2.csv
+python scripts\steps_4_onward.py --interim data\interim\cleaned_2.csv --output outputs\final_df.csv
+```
 
-python scripts\steps_4_onward.py --interim C:\path\to\cleaned_2.csv --output C:\path\to\final_df.csv
+---
+
+# Final Output Dataset
+
+Final processed dataset:
+
+```text
+https://drive.google.com/file/d/1-Nt5G0czeLe_f5sIILDsVRXMQPXvktRZ/view?usp=sharing
+```
+
+---
+
+# Google Colab Notebook
+
+If there is any difficulty reproducing locally, the Google Colab notebook can also be used after adjusting file paths.
+
+```text
+https://drive.google.com/file/d/1IHLmQAi038dsW0CY0H_pewcOZtIPCUCv/view?usp=sharing
 ```
 
 ---
 
 # Notes
 
-- Canonicalization is currently the slowest stage of the workflow.
+- Canonicalization is currently the most computationally expensive stage of the workflow.
 - The interim dataset allows downstream stages to be rerun without recomputing expensive preprocessing steps.
-- Large datasets and generated outputs are intentionally excluded from GitHub.
+- Large datasets and generated outputs are intentionally excluded from GitHub because of file size constraints.
 - Shared helper functions are stored inside `pipeline_support.py`.
-- If there is any difficulty reproducing locally, the Google Colab notebook can also be used after adjusting file paths.
-
----
-
-# Google Colab Notebook
-
-https://drive.google.com/file/d/1IHLmQAi038dsW0CY0H_pewcOZtIPCUCv/view?usp=sharing
