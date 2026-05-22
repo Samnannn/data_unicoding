@@ -1,0 +1,21 @@
+# Virtual environments and Python cache
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Large raw/intermediate datasets
+data/raw/
+data/interim/
+
+# Generated outputs
+outputs/
+
+# Model artifacts and temporary prediction files
+third_party/its_all_in_the_name_light_repo/data/
+
+# Large file formats
+*.csv
+*.parquet
+*.pkl
+*.joblib
+*.pt
